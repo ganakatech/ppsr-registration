@@ -13,7 +13,7 @@ docker compose up --build
 - Backend: [http://localhost:5000/swagger](http://localhost:5000/swagger/index.html)
 - Frontend: [http://localhost:3000](http://localhost:3000)
 
-## Inpout files used for testing
+## Input files used for testing
 ```bash
 cd Inputfiles
 Sample-data.csv - File with 3 valid records and 1 invalid record
