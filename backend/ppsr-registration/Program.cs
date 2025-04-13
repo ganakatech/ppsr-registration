@@ -14,6 +14,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Add health checks
+builder.Services.AddHealthChecks();
+    //commented as sqllite does not support this
+    //.AddDbContextCheck<AppDbContext>();
+
 // Configure file upload size limit (25MB)
 builder.Services.Configure<FormOptions>(options =>
 {
@@ -54,6 +59,9 @@ app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAntiforgery();
 app.UseRateLimiter();
+
+// Map health check endpoint
+app.MapHealthChecks("/health");
 
 app.MapPost("/upload", async (IFormFile file, CsvProcessor processor, [FromServices] IAntiforgery antiforgery, HttpContext context) =>
 {
