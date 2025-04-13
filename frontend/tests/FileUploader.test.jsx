@@ -6,24 +6,20 @@ import FileUploader from '../src/components/FileUploader';
 // Mock axios
 vi.mock('axios');
 
-describe('FileUploader', () =>
-{
-  beforeEach(() =>
-  {
+describe('FileUploader', () => {
+  beforeEach(() => {
     // Clear mocks before each test
     vi.clearAllMocks();
   });
 
-  test('renders upload component', () =>
-  {
+  test('renders upload component', () => {
     render(<FileUploader />);
     expect(screen.getByRole('heading', { name: /upload csv/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/choose file/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/choose file/i)).toHaveAttribute('accept', '.csv');
   });
 
-  test('handles successful file upload', async () =>
-  {
+  test('handles successful file upload', async () => {
     const mockResponse = {
       submitted: 10,
       invalid: 2,
@@ -41,26 +37,39 @@ describe('FileUploader', () =>
 
     fireEvent.change(input, { target: { files: [file] } });
 
-    await waitFor(() =>
-    {
-      // expect(screen.getByText(/Submitted: 10/i)).toBeInTheDocument();
-      // expect(screen.getByText(/Invalid: 2/i)).toBeInTheDocument();
-      // expect(screen.getByText(/Processed: 8/i)).toBeInTheDocument();
-      // expect(screen.getByText(/Updated: 3/i)).toBeInTheDocument();
-      // expect(screen.getByText(/Added: 5/i)).toBeInTheDocument();
-      expect(screen.getByText(/Submitted:/i)).toBeInTheDocument();
-      expect(screen.getByText(/Invalid:/i)).toBeInTheDocument();
-      expect(screen.getByText(/Processed:/i)).toBeInTheDocument();
-      expect(screen.getByText(/Updated:/i)).toBeInTheDocument();
-      expect(screen.getByText(/Added:/i)).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('10')).toBeInTheDocument();
+      expect(screen.getByText('2')).toBeInTheDocument();
+      expect(screen.getByText('8')).toBeInTheDocument();
+      expect(screen.getByText('3')).toBeInTheDocument();
+      expect(screen.getByText('5')).toBeInTheDocument();
     });
 
     expect(axios.post).toHaveBeenCalledTimes(1);
     expect(axios.post).toHaveBeenCalledWith('http://localhost:5143/upload', expect.any(FormData));
   });
 
-  test('handles file upload error', async () =>
-  {
+  test('prevents duplicate file upload', async () => {
+    render(<FileUploader />);
+
+    const file = new File(['test content'], 'test.csv', { type: 'text/csv' });
+    const input = screen.getByLabelText(/choose file/i);
+
+    // First upload
+    fireEvent.change(input, { target: { files: [file] } });
+
+    // Try to upload the same file again
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => {
+      expect(screen.getByText(/this file has already been uploaded/i)).toBeInTheDocument();
+    });
+
+    // Should only call API once
+    expect(axios.post).toHaveBeenCalledTimes(1);
+  });
+
+  test('handles file upload error', async () => {
     axios.post.mockRejectedValueOnce(new Error('Upload failed'));
 
     render(<FileUploader />);
@@ -70,8 +79,7 @@ describe('FileUploader', () =>
 
     fireEvent.change(input, { target: { files: [file] } });
 
-    await waitFor(() =>
-    {
+    await waitFor(() => {
       expect(screen.getByText(/upload failed/i)).toBeInTheDocument();
     });
 
@@ -79,8 +87,7 @@ describe('FileUploader', () =>
     expect(screen.queryByText(/summary/i)).not.toBeInTheDocument();
   });
 
-  test('does nothing when no file is selected', () =>
-  {
+  test('does nothing when no file is selected', () => {
     render(<FileUploader />);
 
     const input = screen.getByLabelText(/choose file/i);

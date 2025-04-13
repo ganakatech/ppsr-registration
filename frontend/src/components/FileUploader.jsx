@@ -2,26 +2,30 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Box, Button, Typography, Grid, Paper, Input } from '@mui/material';
 
-export default function FileUploader()
-{
+export default function FileUploader() {
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState(null);
+  const [lastUploadedFile, setLastUploadedFile] = useState(null); // Track last uploaded file
 
-  const handleUpload = async (e) =>
-  {
+  const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Check if the same file is being uploaded
+    if (lastUploadedFile && lastUploadedFile.name === file.name) {
+      setError('This file has already been uploaded. Please wait for the operation to complete or check the summary.');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('file', file);
 
-    try
-    {
+    try {
+      setError(null); // Clear any previous errors
+      setLastUploadedFile(file); // Set the current file as the last uploaded file
       const res = await axios.post('http://localhost:5143/upload', formData);
       setSummary(res.data);
-      setError(null);
-    } catch (err)
-    {
+    } catch (err) {
       console.error('Upload error:', err);
       setSummary(null);
       setError('Upload failed. Please try again.');
