@@ -8,10 +8,12 @@ using PpsrRegistration.Models;
 using System.Globalization;
 
 namespace PpsrRegistration.Services;
+
 public class CsvProcessor
 {
     private readonly AppDbContext _db;
     private readonly IValidator<VehicleRegistration> _validator;
+    private const int BatchSize = 1000; // Process records in batches for better performance
 
     public CsvProcessor(AppDbContext db, IValidator<VehicleRegistration> validator)
     {
@@ -25,7 +27,8 @@ public class CsvProcessor
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             HeaderValidated = null,
-            MissingFieldFound = null
+            MissingFieldFound = null,
+            BadDataFound = null
         };
         using var csv = new CsvReader(reader, config);
 
@@ -34,38 +37,57 @@ public class CsvProcessor
         var records = csv.GetRecords<VehicleRegistration>().ToList();
         var summary = new BatchSummary { Submitted = records.Count };
 
-        foreach (var record in records)
+        // Create a lookup of existing registrations by grantor name for efficient querying
+        // Since we assume no grantor shares the same full name, we can use it as a unique key
+        var existingRegistrations = await _db.Registrations
+            .ToDictionaryAsync(r => $"{r.GrantorFirstName} {r.GrantorLastName}");
+
+        // Process records in batches
+        for (int i = 0; i < records.Count; i += BatchSize)
         {
-            ValidationResult result = await _validator.ValidateAsync(record);
-            if (!result.IsValid)
+            var batch = records.Skip(i).Take(BatchSize);
+
+            foreach (var record in batch)
             {
-                summary.Invalid++;
-                continue;
+                ValidationResult result = await _validator.ValidateAsync(record);
+                if (!result.IsValid)
+                {
+                    summary.Invalid++;
+                    continue;
+                }
+
+                var grantorKey = $"{record.GrantorFirstName} {record.GrantorLastName}";
+
+                if (existingRegistrations.TryGetValue(grantorKey, out var existing))
+                {
+                    // Update existing registration
+                    existing.VIN = record.VIN;
+                    existing.StartDate = record.StartDate;
+                    existing.Duration = record.Duration;
+                    existing.SPG_OrgName = record.SPG_OrgName;
+                    existing.SPG_ACN = record.SPG_ACN;
+                    _db.Registrations.Update(existing);
+                    summary.Updated++;
+
+                    // Update the cache
+                    existingRegistrations[grantorKey] = existing;
+                }
+                else
+                {
+                    // Add new registration
+                    await _db.Registrations.AddAsync(record);
+                    summary.Added++;
+
+                    // Update the cache
+                    existingRegistrations.Add(grantorKey, record);
+                }
             }
 
-            var existing = await _db.Registrations.FirstOrDefaultAsync(r =>
-                r.VIN == record.VIN &&
-                r.GrantorFirstName == record.GrantorFirstName &&
-                r.GrantorLastName == record.GrantorLastName &&
-                r.SPG_ACN == record.SPG_ACN);
-
-            if (existing != null)
-            {
-                existing.StartDate = record.StartDate;
-                existing.Duration = record.Duration;
-                existing.SPG_OrgName = record.SPG_OrgName;
-                _db.Registrations.Update(existing);
-                summary.Updated++;
-            }
-            else
-            {
-                await _db.Registrations.AddAsync(record);
-                summary.Added++;
-            }
+            // Save changes for the current batch
+            await _db.SaveChangesAsync();
         }
 
         summary.Processed = summary.Added + summary.Updated;
-        await _db.SaveChangesAsync();
         return summary;
     }
 }

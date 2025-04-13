@@ -2,10 +2,36 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Http.Features;
+using System.Threading.RateLimiting;
 using PpsrRegistration.Data;
 using PpsrRegistration.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Configure file upload size limit (25MB)
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 25 * 1024 * 1024; // 25MB in bytes
+});
+
+// Add rate limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+});
 
 var config = builder.Configuration;
 builder.Services.AddDbContext<AppDbContext>(opt =>
@@ -13,8 +39,6 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 builder.Services.AddScoped<CsvProcessor>();
 builder.Services.AddValidatorsFromAssemblyContaining<VehicleRegistrationValidator>();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddAntiforgery();
 builder.Services.AddCors(opt =>
 {
@@ -27,6 +51,7 @@ app.UseCors();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAntiforgery();
+app.UseRateLimiter();
 
 app.MapPost("/upload", async (IFormFile file, CsvProcessor processor, [FromServices] IAntiforgery antiforgery, HttpContext context) =>
 {
