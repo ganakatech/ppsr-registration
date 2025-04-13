@@ -1,20 +1,36 @@
 version: '3.8'
+
 services:
   backend:
     build:
       context: ./backend
+      dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
     volumes:
-      - ./backend:/app
-      - ./backend/appsettings.json:/app/appsettings.json
+      - db-data:/app/Data
+    # networks:
+    #   - ppsr-network
 
   frontend:
     build:
       context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
+    environment:
+      - VITE_API_URL=http://localhost:5000
     depends_on:
       - backend
+    # networks:
+    #   - ppsr-network
+
+volumes:
+  db-data:
+
+
+# networks:
+#   ppsr-network:
+#     driver: bridge

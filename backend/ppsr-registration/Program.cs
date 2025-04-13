@@ -43,7 +43,9 @@ builder.Services.AddAntiforgery();
 builder.Services.AddCors(opt =>
 {
     opt.AddDefaultPolicy(policy =>
-        policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .WithOrigins("http://localhost:3000", "http://frontend:3000"));
 });
 
 var app = builder.Build();
