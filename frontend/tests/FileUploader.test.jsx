@@ -14,7 +14,7 @@ describe('FileUploader', () => {
 
   test('renders upload component', () => {
     render(<FileUploader />);
-    expect(screen.getByRole('heading', { name: /upload csv/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /upload a .csv File/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/choose file/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/choose file/i)).toHaveAttribute('accept', '.csv');
   });
@@ -38,11 +38,24 @@ describe('FileUploader', () => {
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(screen.getByText('10')).toBeInTheDocument();
-      expect(screen.getByText('2')).toBeInTheDocument();
-      expect(screen.getByText('8')).toBeInTheDocument();
-      expect(screen.getByText('3')).toBeInTheDocument();
-      expect(screen.getByText('5')).toBeInTheDocument();
+      // Check for table headers
+      expect(screen.getByText('Metric')).toBeInTheDocument();
+      expect(screen.getByText('Count')).toBeInTheDocument();
+
+      // Check for row labels
+      expect(screen.getByText('Submitted')).toBeInTheDocument();
+      expect(screen.getByText('Invalid')).toBeInTheDocument();
+      expect(screen.getByText('Processed')).toBeInTheDocument();
+      expect(screen.getByText('Updated')).toBeInTheDocument();
+      expect(screen.getByText('Added')).toBeInTheDocument();
+
+      // Check for values in table cells
+      const cells = screen.getAllByRole('cell');
+      expect(cells.find(cell => cell.textContent === '10')).toBeInTheDocument();
+      expect(cells.find(cell => cell.textContent === '2')).toBeInTheDocument();
+      expect(cells.find(cell => cell.textContent === '8')).toBeInTheDocument();
+      expect(cells.find(cell => cell.textContent === '3')).toBeInTheDocument();
+      expect(cells.find(cell => cell.textContent === '5')).toBeInTheDocument();
     });
 
     expect(axios.post).toHaveBeenCalledTimes(1);
