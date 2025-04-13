@@ -3,7 +3,7 @@
 ## Prerequisites
 - Docker
 - Node.js + npm (for local dev)
-- .NET 8 SDK (for local dev)
+- .NET 9 SDK (for local dev)
 
 ## Running the App
 ```bash
@@ -17,12 +17,12 @@ docker compose up --build
 ### Backend
 ```bash
 cd backend && cd ppsr-registration
- dotnet run
+dotnet run
 ```
 ### Backend unit tests
 ```bash
 cd backend && cd ppsr-registration.Tests
- dotnet test
+dotnet test
 ```
 ### Frontend
 ```bash
@@ -30,7 +30,7 @@ cd frontend
 npm install
 npm run dev
 ```
-### Frontend
+### Frontend unit tests
 ```bash
 cd frontend
 npm test
