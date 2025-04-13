@@ -41,10 +41,10 @@ export default function FileUploader()
     <Box sx={{ maxWidth: 600, margin: '0 auto', padding: 2 }}>
       <Paper elevation={3} sx={{ padding: 3 }}>
         <Typography variant="h5" gutterBottom>
-          Upload CSV File
+          Upload a .csv File
         </Typography>
         <Typography variant="body1" color="textSecondary" gutterBottom>
-          Select a CSV file to upload and process vehicle registration data.
+          Select a .csv file to upload and process vehicle registration data.
         </Typography>
         <Box sx={{ marginBottom: 2 }}>
           <label htmlFor="file-upload">
@@ -60,6 +60,12 @@ export default function FileUploader()
             </Button>
           </label>
         </Box>
+
+        {lastUploadedFile && (
+          <Typography variant="body2" color="textSecondary" sx={{ marginTop: 1 }}>
+            Selected File: {lastUploadedFile.name}
+          </Typography>
+        )}
 
         {summary && (
           <Box sx={{ marginTop: 3 }}>

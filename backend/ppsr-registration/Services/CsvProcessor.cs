@@ -13,7 +13,7 @@ public class CsvProcessor
 {
     private readonly AppDbContext _db;
     private readonly IValidator<VehicleRegistration> _validator;
-    private const int BatchSize = 1000; // Process records in batches for better performance
+    private const int BatchSize = Constants.MaxBatchSize; // Process records in batches for better performance
 
     public CsvProcessor(AppDbContext db, IValidator<VehicleRegistration> validator)
     {
