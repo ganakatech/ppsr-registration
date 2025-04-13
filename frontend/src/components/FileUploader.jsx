@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Box, Button, Typography, Grid, Paper, Input } from '@mui/material';
+import { Box, Button, Typography, Paper, Input, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 
 export default function FileUploader()
 {
@@ -63,29 +63,39 @@ export default function FileUploader()
 
         {summary && (
           <Box sx={{ marginTop: 3 }}>
-            <Typography variant="h6">Processing Summary</Typography>
-            <Grid container spacing={2} sx={{ marginTop: 1 }}>
-              <Grid item xs={6}>
-                <Typography variant="body2">Submitted:</Typography>
-                <Typography variant="body1">{summary.submitted}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2">Invalid:</Typography>
-                <Typography variant="body1">{summary.invalid}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2">Processed:</Typography>
-                <Typography variant="body1">{summary.processed}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2">Updated:</Typography>
-                <Typography variant="body1">{summary.updated}</Typography>
-              </Grid>
-              <Grid item xs={6}>
-                <Typography variant="body2">Added:</Typography>
-                <Typography variant="body1">{summary.added}</Typography>
-              </Grid>
-            </Grid>
+            <Typography variant="h6" align="center" gutterBottom>Processing Summary</Typography>
+            <TableContainer component={Paper} sx={{ maxWidth: 400, margin: '0 auto' }}>
+              <Table size="small" aria-label="processing summary table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold' }}>Metric</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'bold' }}>Count</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Submitted</TableCell>
+                    <TableCell align="center">{summary.submitted}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Invalid</TableCell>
+                    <TableCell align="center">{summary.invalid}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Processed</TableCell>
+                    <TableCell align="center">{summary.processed}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Updated</TableCell>
+                    <TableCell align="center">{summary.updated}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Added</TableCell>
+                    <TableCell align="center">{summary.added}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableContainer>
           </Box>
         )}
 

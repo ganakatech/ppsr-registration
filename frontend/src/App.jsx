@@ -8,7 +8,7 @@ function App()
     <div className="container">
       <header className="app-header">
         <h1>PPSR Registration</h1>
-        <p>Upload and process your vehicle registration data efficiently.</p>
+        <p>Upload and process your vehicle registration.</p>
       </header>
       <main>
         <FileUploader />
